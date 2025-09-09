@@ -1,0 +1,197 @@
+@import url('https://fonts.googleapis.com/css2?family=Big+Shoulders:opsz,wght@10..72,100..900&display=swap');
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+nav {
+    padding: 15px;
+    background-color: #003135;
+    position: relative;
+}
+
+.navbar {
+    padding: 5px;
+    background-color: #024950;
+    border-radius: 8px;
+    position: sticky;
+    top: 0;
+    z-index: 1000;
+}
+
+.navbar-brand {
+    font-family: "Big Shoulders", sans-serif;
+    font-optical-sizing: auto;
+    font-weight: 700;
+    font-style: normal;
+    font-size: 1.7rem;
+    cursor: none;
+}
+
+.nav__icon {
+    color: #ffffff;
+}
+
+.navbar__nav {
+    display: flex;
+    flex-direction: row;
+    list-style: none;
+    width: 100%;
+    padding: 0;
+    margin: 0;
+}
+
+.main--icon {
+    display: flex;
+}
+
+.nav-item {
+    display: inline-flex;
+    margin:0 10px;
+}
+
+.nav-link {
+    text-decoration: none;
+    padding: 10px;
+}
+
+.navbar__content {
+    display: flex;
+}
+
+.mini__navbar {
+    position: absolute;
+    top: 100%;
+    left: 0;
+    width: 100%;
+    background-color: #003135;
+    z-index: 5;
+    transition: max-height 0.3s ease;
+    overflow: hidden;
+}
+
+.mini__navbar.collapsed {
+    max-height: 0;
+}
+
+.mini__navbar.open {
+    max-height: 400px;
+}
+
+@media (max-width: 700px) {
+    .navbar-nav {
+        flex-direction: column;
+        align-items: flex-start;
+    }
+
+    .mini__navbar.collapsed {
+        display: none;
+    }
+    .mini__navbar.open {
+        display: block;
+    }
+    .navbar__content {
+        display: none;
+    }
+}
+
+@media (min-width: 701px) {
+    .navbar__toggle {
+        display: none;
+    }
+    .mini__navbar {
+        display: none;
+    }
+}
+
+/************** Navigation Icon *********************/
+.navbar__icon {
+    display: flex;
+    justify-content: space-between;
+    gap: 20px;
+    padding: 5px 20px;
+}
+
+.nav-icon, .nav-link {
+    cursor: pointer;
+    transition: color 0.5s ease, transform 0.4s ease;
+}
+
+.nav-icon:hover {
+    color: #0fa4af;
+    transform: scale(1.2);
+}
+
+.navbar__toggle {
+    background-color: #003135;
+    color: #fff;
+    border: none;
+    border-radius: 8px;
+    padding: 10px 15px;
+    font-size: 16px;
+    transition: background-color 0.3s ease, transform 0.2s ease;
+}
+
+.navbar__toggle:hover {
+    background-color: #024950;
+}
+
+.navbar__toggle:active {
+    transform: scale(0.95);
+}
+
+.p-2 > a {
+    display: block;
+}
+
+.p-2 > a:hover {
+    transform: scale(1.1);
+}
+
+.active {
+    color: red;
+    font-weight: bold;
+}
+
+.tooltip-container {
+    position: absolute;
+    top: -25px; /* Moves it above the icon */
+    left: 50%;
+    transform: translateX(-50%);
+    width: max-content;
+    z-index: 10;
+}
+
+.tooltip {
+    padding: 8px;
+    background-color: rgba(0, 0, 0, 0.8);
+    color: white;
+    font-size: 12px;
+    border-radius: 8px;
+    white-space: nowrap;
+    box-shadow: 0 2px 5px rgba(0,0,0,0.2);
+    opacity: 0;
+    visibility: hidden;
+    transition: opacity 0.3s ease, visibility 0.3s ease;
+}
+
+.nav-icon:hover .tooltip {
+    opacity: 1;
+    visibility: visible;
+}
+
+.nav-icon {
+    position: relative;
+}
+
+.tooltip::before {
+    content: "";
+    position: absolute;
+    bottom: -5px; /* Places the triangle below */
+    left: 50%;
+    transform: translateX(-50%);
+    border-width: 5px;
+    border-style: solid;
+    border-color: rgba(0, 0, 0, 0.8) transparent transparent transparent;
+}

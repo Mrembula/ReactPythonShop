@@ -1,18 +1,24 @@
+import { useCheckItems } from "../CounterPages/ItemInCart.jsx"
 import "./Product.module.css";
 import 'bootstrap/dist/css/bootstrap.min.css';
 import {useNavigate} from "react-router-dom";
+import { handleAddToCart, addItem } from "../../../cartUtils.js";
+import {toast, ToastContainer} from "react-toastify";
+import {useCountItemsContext} from "../CounterPages/AddCountBasket.jsx";
 
 
 const Product = ({product, onClose}) => {
     const navigate = useNavigate();
+    const {inCartStatus, setInCartStatus} = useCheckItems();
+    const { setCartItemCount } = useCountItemsContext();
 
     const handleFullDetails = () => {
         if (!product) {
             console.error("Product is undefined!");
             return;
         }
-        navigate(`/product-detail/${product.slug}`, { state: { product } }); // Pass data via state
-        onClose();// Close the modal
+        navigate(`/product/${product.slug}`, { state: { product } }); // Pass data via state
+        onClose();  // Close the modal
     };
 
     return(
@@ -32,7 +38,7 @@ const Product = ({product, onClose}) => {
                         </div>
                         <div className="modal-body text-black">
                             <div style={{display: "flex", justifyContent: "center"}}>
-                                <img src={product.image}
+                                <img src={product.image_url}
                                      style={{width: "18rem"}}
                                      className="img-fluid mb-3" alt={product.name}/>
                             </div>
@@ -56,12 +62,21 @@ const Product = ({product, onClose}) => {
                                     data-bs-dismiss="modal">
                                     Close
                                 </button>
-                                <button type="button" className="btn btn-primary">{"Item in Cart"}
+                                <button type="button" className="btn btn-primary"
+                                        onClick={() => {
+                                            handleAddToCart(product, setInCartStatus);
+                                            toast.success("Item has been successfully added to cart");
+                                            setCartItemCount(prevCount => prevCount + 1);
+                                            addItem(product.id);
+                                        }}
+                                        disabled={inCartStatus[product.id] || false}
+                                >{inCartStatus[product.id] ? "Item in Cart" : "Add to Cart"}
                                 </button>
                             </div>
                         </div>
                     </div>
                 </div>
+                <ToastContainer />
             </div>
 
         </>

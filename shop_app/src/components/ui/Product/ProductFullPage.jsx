@@ -20,10 +20,13 @@ const ProductFullPage = () => {
     const { cartItemCount,setCartItemCount } = useCountItemsContext()
     const {inCartStatus, setInCartStatus} = useCheckItems();
 
+    // Fix similar products backend. Return those an object of similar products
+
     useEffect(() => {
         //Fetch the product details
-        api.get(`product_detail/${slug}`)
+        api.get(`product/${slug}`)
             .then(response => {
+                console.log("similar data return: ", response.data)
                 const similarProducts = response.data.similar_products;
                 setRelatedProducts(similarProducts);
                 setLoading(false)
@@ -68,7 +71,7 @@ const ProductFullPage = () => {
                                 onClick={() => {
                                     toast.success("Item has been successfully added to cart");
                                     handleAddToCart(product, setInCartStatus);
-                                    setCartItemCount(prevCount => prevCount + 2); {/* Card item add 2 item of the same thing. I don't see where this is happening */}
+                                    setCartItemCount(prevCount => prevCount + 1); {/* Card item add 2 item of the same thing. I don't see where this is happening */}
                                     addItem(product.id);
                                 }}
                                 disabled={inCartStatus[product.id] || false} // Disable if the item is in the cart

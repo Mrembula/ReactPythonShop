@@ -12,7 +12,7 @@ const Card = ({products, handleCardClick}) => {
                                  key={product.id}
                                  onClick={() => handleCardClick(product)}>
                                 <div className={`${styles.ImageContainer}`}>
-                                <img src={product.image}
+                                <img src={product.image_url}
                                      className={`card-img-top ${styles.CardImg}`}
                                      alt={product.name}
                                 /></div>

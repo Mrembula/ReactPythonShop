@@ -1,0 +1,133 @@
+.BasketContainer {
+    /*background: linear-gradient(rgba(0, 49, 53, 0.5), rgba(0, 49, 53, 0.5)),
+    url("../../images/shopping-wallpaper_4.jpg") no-repeat center fixed;*/
+    min-width: 100vw;
+    min-height: 100vh;
+}
+
+.Container {
+    margin: 1.2rem;
+}
+
+.GridTemplateColumn {
+    display: grid;
+    grid-template-columns: 2fr 1fr;
+    gap: 1rem;
+    height: 500px;
+}
+
+.HeadTitle {
+    font-size: 2.6rem;
+    font-weight: 400;
+    margin: 12px;
+
+}
+
+.ImageBody {
+    min-width: 300px;
+    height: 400px;
+    margin: 5px;
+    background-color: white;
+    border: none;
+    border-radius: 8px;
+}
+
+.CartImage {
+    height: 100%;
+    width: 100%;
+    border: none;
+    border-radius: 8px;
+}
+
+.Card {
+    border-top: white solid 1px;
+    border-bottom: white solid 1px;
+    padding-top: 10px;
+}
+
+.CardTitle {
+    font-weight: bold;
+}
+
+.FormControl {
+    margin-top: 5px;
+}
+
+.BtnBlock {
+    width: 100%;
+}
+
+.CartBody {
+    display: grid;
+    grid-template-columns: 2fr 1fr 1fr 1fr;
+    gap: 15px;
+    height: 200px;
+}
+
+.ProductDetail, .ItemPrice, .ProductQuantity {
+    margin: 5px;
+}
+
+.EditTags {
+    text-align: center;
+}
+
+.EditTag {
+    color: white;
+    margin: 2px 10px;
+    padding: 5px;
+    border: none;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    background: transparent;
+}
+
+.EditTag:hover {
+    opacity: 0.8;
+    transform: scale(1.1);
+}
+
+.EditTag:active {
+    color: #0fa4af;
+}
+
+/* Checkout UI */
+.FormGroup {
+
+}
+
+.CartSummary {
+    border: 1px solid #ddd;
+    padding: 20px;
+    border-radius: 5px;
+    max-width: 450px;
+    margin: auto;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+}
+
+.CartSummary h5 {
+    margin-bottom: 20px;
+    text-align: center;
+}
+
+.CartSummary p {
+    margin: 5px 0;
+}
+
+.CartSummary, .Total {
+    font-weight: bold;
+    font-size: 1.2em;
+}
+
+.BtnCheckout {
+    background-color: #6c63ff;
+    color: white;
+    border: none;
+    padding: 10px 20px;
+    border-radius: 8px;
+    text-align: center;
+    width: 100%;
+}
+.BtnCheckout:hover {
+    background-color: #5a54d6;
+}

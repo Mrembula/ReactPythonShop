@@ -19,7 +19,7 @@ class Command(BaseCommand):
                     description=item.get('description', ''),
                     price=item.get('price', 0),
                     category=item.get('category', ''),
-                    image=item.get('image', '')
+                    image_url=item.get('image', '')
                 )
             self.stdout.write(self.style.SUCCESS('Products fetched and saved!'))
         except requests.exceptions.RequestException as e:

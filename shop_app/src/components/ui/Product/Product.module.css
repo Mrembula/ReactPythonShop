@@ -15,8 +15,9 @@
 }
 
 .productImg {
-    width: 480px;
-    height: 300px;
+    /*width: 480px;
+    height: 300px;*/
+    max-width: 80%;
 }
 
 .imageSpace {
@@ -24,7 +25,6 @@
     justify-content: center;
     background-color: white;
     border-radius: 12px;
-    width: 800px;
-    height: 670px;
+    max-width: 50%;
     overflow: hidden;
 }

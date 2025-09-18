@@ -1,13 +1,23 @@
 from django.db import models
 from django.utils.text import slugify
 from django.conf import settings
+from email.policy import default
 
 
 class Product(models.Model):
     CATEGORY = (
         ("Electronics", "Electronics"),
         ("Groceries", "Groceries"),
-        ("Clothings", "Clothings"),
+        ("Clothing", "Clothing"),
+        ("Books", "Books"),
+        ("Furniture", "Furniture"),
+        ("Toys", "Toys"),
+        ("Sports", "Sports"),
+        ("Beauty", "Beauty"),
+        ("Automotive", "Automotive"),
+        ("Health", "Health"),
+        ("Other", "Other"),
+        ("Accessories", "Accessories"),
     )
 
     name = models.CharField(max_length=100)
@@ -21,6 +31,10 @@ class Product(models.Model):
         return self.name
 
     def save(self, *args, **kwargs):
+
+        if not self.name:
+            self.category = "Other"
+
         if not self.slug:
             self.slug = slugify(self.name)
             initial_slug = self.slug
@@ -29,6 +43,7 @@ class Product(models.Model):
                 self.slug = f'{initial_slug}-{counter}'
                 counter += 1
         super().save(*args, **kwargs)
+
 
 class Cart(models.Model):
     cart_code = models.CharField(max_length=50, unique=True)

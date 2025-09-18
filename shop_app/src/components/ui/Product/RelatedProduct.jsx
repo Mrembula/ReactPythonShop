@@ -18,7 +18,7 @@ const RelatedProduct = (relatedProducts) => {
                             <div className="card">
                                 <div className={styles.imageContainer}>
                                     <img
-                                        src={item.image}
+                                        src={item.image_url}
                                         className="card-img-top"
                                         alt={item.name}
                                     />

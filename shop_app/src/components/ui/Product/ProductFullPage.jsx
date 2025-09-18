@@ -24,10 +24,10 @@ const ProductFullPage = () => {
 
     useEffect(() => {
         //Fetch the product details
-        api.get(`product/${slug}`)
+        api.get(`related_products/${slug}`)
             .then(response => {
-                console.log("similar data return: ", response.data)
-                const similarProducts = response.data.similar_products;
+                console.log("similar data return: ", response)
+                const similarProducts = response.data;
                 setRelatedProducts(similarProducts);
                 setLoading(false)
             })
@@ -80,7 +80,7 @@ const ProductFullPage = () => {
                             </button>
                             <ToastContainer />
                         </div>
-                </div>
+                    </div>
             </div>
             <RelatedProduct relatedProducts={relatedProducts}/>
         </div>

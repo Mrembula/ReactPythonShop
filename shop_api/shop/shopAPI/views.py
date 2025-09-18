@@ -8,11 +8,10 @@ from django.shortcuts import get_object_or_404
 from rest_framework_simplejwt.tokens import RefreshToken
 from api.models import CustomUser as User
 from .models import Product, Cart, CartItem
-from .serializers import ProductSerializer, CartSerializer
+from .serializers import ProductSerializer, CartSerializer, DetailProductSerializer
 
 # I lost the first backend, Which I completed 4 months back. Tired of re-writing this
-# Use github next time to avoid this situation
-
+# Use github next time to avoid this situatio
 
 # Helper function for JWT tokens
 def get_tokens_for_user(user):
@@ -32,7 +31,7 @@ def product_list(request):
 @api_view(['GET'])
 def product_detail(request, slug):
     product = get_object_or_404(Product, slug=slug)
-    serializer = ProductSerializer(product, context={'request': request})
+    serializer = DetailProductSerializer(product, context={'request': request})
     return Response(serializer.data)
 
 @api_view(['GET'])
@@ -74,10 +73,11 @@ def signup(request):
 @api_view(['POST'])
 @permission_classes([IsAuthenticated]) # Make sure only logged-in users can do this
 def save_cart_to_user(request):
-    cart_code =request.data.get('cart_code')
+    print("Hello, World!!")
+    cart_code = request.data.get('cart_code')
     user = request.user
     try:
-        cart = Cart.objects.get('cart_code=cart_code')
+        cart = Cart.objects.get(cart_code)
         cart.user = user
         cart.save()
         return Response({'success': 'Cart associated with user'}, status=status.HTTP_200_OK)

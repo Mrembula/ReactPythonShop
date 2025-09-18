@@ -1,40 +1,25 @@
 from rest_framework import serializers
 from .models import Product, Cart, CartItem
 
+
 class ProductSerializer(serializers.ModelSerializer):
-    # image_url = serializers.SerializerMethodField()
 
     class Meta:
         model = Product
-        fields = ['id', 'name', 'slug', 'image_url', 'description', 'category', 'price']
+        fields = ['id', 'name', 'slug', 'image_url', 'description',
+                  'category', 'price']
 
-'''
-    def get_image_url(self, obj):
-        request = self.context.get('request')
-        if obj.image_url and hasattr(obj.image_url, 'url'):
-            return request.build_absolute_uri(obj.image_url.url)
-        return None
-    
-
-class DetailSerializer(serializers.ModelSerializer):
-    image = serializers.SerializerMethodField()
-    similar_products = serializers.SerializerMethodField()
+class DetailProductSerializer(serializers.ModelSerializer):
+    similar_product = serializers.SerializerMethodField()
 
     class Meta:
         model = Product
-        fields = ['id', 'name', 'slug', 'image', 'description', 'category', 'price', 'similar_products']
-
-    def get_image(self, obj):
-        request = self.context.get('request')
-        if obj.image and hasattr(obj.image, 'url'):
-            return request.build_absolute_uri(obj.image.url)
-        return None
+        fields = ['id', 'name', 'slug', 'image_url', 'description', 'similar_products']
 
     def get_similar_products(self, obj):
         similar = Product.objects.filter(category=obj.category).exclude(id=obj.id)[:4]
-        # This is the corrected line.
         return ProductSerializer(similar, many=True, context=self.context).data
-'''
+
 
 class CartItemSerializer(serializers.ModelSerializer):
     product = ProductSerializer(read_only=True)
@@ -68,3 +53,27 @@ class CartSerializer(serializers.ModelSerializer):
     def get_tax(self, obj):
         subtotal = self.get_subtotal(obj)
         return subtotal * 0.1
+
+
+'''
+    def get_image_url(self, obj):
+        request = self.context.get('request')
+        if obj.image_url and hasattr(obj.image_url, 'url'):
+            return request.build_absolute_uri(obj.image_url.url)
+        return None
+
+
+class DetailSerializer(serializers.ModelSerializer):
+    image = serializers.SerializerMethodField()
+    similar_products = serializers.SerializerMethodField()
+
+    class Meta:
+        model = Product
+        fields = ['id', 'name', 'slug', 'image', 'description', 'category', 'price', 'similar_products']
+
+    def get_image(self, obj):
+        request = self.context.get('request')
+        if obj.image and hasattr(obj.image, 'url'):
+            return request.build_absolute_uri(obj.image.url)
+        return None
+'''

@@ -9,15 +9,19 @@ const AddCounterBasket  = ({ children }) => {
 
     useEffect(() => {
         if (cartCode) {
-            api.get(`get_cart_status?cart_code=${cartCode}`)
-                .then((res) => {
-                    setCartItemCount(res.data.items_count);
+            api.get(`get_cart_status/${cartCode}`)
+                .then((response) => {
+                    console.log("This is cart status", response.data);
+                    setCartItemCount(response);
                 })
                 .catch((err) => {
-                    console.error(err.message);
+                    if (err.response && err.response.status === 404)
+                        setCartItemCount(0);
+                    else
+                        console.error(err.message);
                 });
         }
-    }, [cartCode]);
+    }, [cartCode, setCartItemCount]);
 
     return (
         <CountItemsContext.Provider value={{ cartItemCount, setCartItemCount }}>

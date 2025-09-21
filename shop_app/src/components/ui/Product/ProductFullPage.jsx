@@ -26,7 +26,6 @@ const ProductFullPage = () => {
         //Fetch the product details
         api.get(`related_products/${slug}`)
             .then(response => {
-                console.log("similar data return: ", response)
                 const similarProducts = response.data;
                 setRelatedProducts(similarProducts);
                 setLoading(false)

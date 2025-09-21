@@ -1,6 +1,5 @@
 import React, { useState } from 'react';
 
-
 const CheckoutForm = () => {
     const [name, setName] = React.useState('');
     const [email, setEmail] = useState('');

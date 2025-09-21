@@ -6,9 +6,12 @@ from django.contrib.auth import authenticate
 from django.db import IntegrityError
 from django.shortcuts import get_object_or_404
 from rest_framework_simplejwt.tokens import RefreshToken
+from venv import create
+
 from api.models import CustomUser as User
 from .models import Product, Cart, CartItem
-from .serializers import ProductSerializer, CartSerializer, DetailProductSerializer
+from .serializers import ProductSerializer, CartSerializer, DetailProductSerializer, CartItemSerializer
+
 
 # I lost the first backend, Which I completed 4 months back. Tired of re-writing this
 # Use github next time to avoid this situatio
@@ -21,6 +24,7 @@ def get_tokens_for_user(user):
         'access': str(refresh.access_token),
     }
 
+
 # Product-related views
 @api_view(['GET'])
 def product_list(request):
@@ -28,11 +32,13 @@ def product_list(request):
     serializer = ProductSerializer(products, many=True, context={'request': request})
     return Response(serializer.data, status=status.HTTP_200_OK)
 
+
 @api_view(['GET'])
 def product_detail(request, slug):
     product = get_object_or_404(Product, slug=slug)
     serializer = DetailProductSerializer(product, context={'request': request})
     return Response(serializer.data)
+
 
 @api_view(['GET'])
 def related_products(request, slug):
@@ -40,6 +46,7 @@ def related_products(request, slug):
     related = Product.objects.filter(category=product.category).exclude(id=product.id)[:10]
     serializer = ProductSerializer(related, many=True, context={'request': request})
     return Response(serializer.data)
+
 
 # User-related views
 @api_view(['POST'])
@@ -70,10 +77,29 @@ def signup(request):
     except Exception as e:
         return Response({'error': str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
 
+
+@api_view(['GET'])
+def cart_items(request, cart_code):
+    print("found in cart items: ", cart_code)
+
+    if not cart_code:
+        return Response({'error': 'Cart code is required'}, status=status.HTTP_400_BAD_REQUEST)
+
+    print("Hello, World")
+    user_items = CartItem.objects.filter(cart__cart_code=cart_code)
+    print(user_items)
+
+    if not user_items.exists():
+        return Response({'error': 'No items found in cart'}, status=status.HTTP_404_NOT_FOUND)
+
+    serializer = CartItemSerializer(user_items, many=True)
+    print(serializer.data)
+    return Response(serializer.data, status=status.HTTP_200_OK)
+
+
 @api_view(['POST'])
 @permission_classes([IsAuthenticated]) # Make sure only logged-in users can do this
 def save_cart_to_user(request):
-    print("Hello, World!!")
     cart_code = request.data.get('cart_code')
     user = request.user
     try:
@@ -83,6 +109,7 @@ def save_cart_to_user(request):
         return Response({'success': 'Cart associated with user'}, status=status.HTTP_200_OK)
     except Cart.DoesNotExist:
         return Response({'error': 'Cart does not exist'}, status=status.HTTP_404_NOT_FOUND)
+
 
 @api_view(['POST'])
 @permission_classes([AllowAny])
@@ -110,8 +137,16 @@ def add_item(request):
     if not cart_code or not product_id:
         return Response({'error': 'Missing cart code or product ID'}, status=status.HTTP_400_BAD_REQUEST)
 
-    cart = get_object_or_404(Cart, cart_code=cart_code)
-    product = get_object_or_404(Product, id=product_id)
+    print("POST method called")
+    print("cart_code add Items: ", cart_code)
+    print("product Id saved: ", product_id)
+
+    if not cart_code or not product_id:
+        return Response({'error': 'Missing cart code or product ID'})
+
+    cart, created = Cart.objects.get_or_create(cart_code=cart_code)
+    product = Product.objects.get(id=product_id)
+
     cart_item, created = CartItem.objects.get_or_create(cart=cart, product=product)
 
     if not created:
@@ -119,6 +154,8 @@ def add_item(request):
         cart_item.save()
 
     return Response({'message': 'Item added to cart'}, status=status.HTTP_201_CREATED)
+
+
 '''
 @api_view(['GET'])
 def get_cart_status(request, cart_code):
@@ -132,19 +169,23 @@ def get_cart_status(request, cart_code):
     return Response({'items_count': items_count}, status=status.HTTP_200_OK)
 '''
 
+
 @api_view(['GET'])
 def get_cart_status(request, cart_code):  # <-- Add cart_code here
     if not cart_code:
         return Response({'error': 'Cart code not provided'}, status=status.HTTP_400_BAD_REQUEST)
-
     # The rest of the function stays the same
-    cart = get_object_or_404(Cart, cart_code=cart_code)
-    items_count = cart.cart_items.count()
-
-    return Response({'items_count': items_count}, status=status.HTTP_200_OK)
-
-@api_view(['GET'])
-def get_cart_items(request, cart_code):
+    print("Checking Cart Code: ", cart_code)
     cart = get_object_or_404(Cart, cart_code=cart_code)
     serializer = CartSerializer(cart)
+
     return Response(serializer.data, status=status.HTTP_200_OK)
+
+'''
+@api_view(['GET'])
+def cart_items(request, cart_code):
+    cart = get_object_or_404(Cart, cart_code=cart_code)
+    serializer = CartSerializer(cart)
+    print("In Cart: ", serializer.data)
+    return Response(serializer.data, status=status.HTTP_200_OK)
+'''

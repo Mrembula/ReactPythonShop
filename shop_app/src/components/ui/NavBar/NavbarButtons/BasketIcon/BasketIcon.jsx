@@ -22,6 +22,7 @@ const CartBasketIcon = () => {
     useEffect(() => {
         api.get(`cart_items/${cartCode}`)
             .then((response) => {
+                console.log("Cart item useEffect");
                 setCartItems(response.data);
             })
             .catch((err) => {
@@ -33,7 +34,9 @@ const CartBasketIcon = () => {
     useEffect(() => {
         if (!cartItems || cartItems.length === 0) return;
         // Assign cart items to the inCart state
-        setInCart(cartItems.cart_items);
+        console.log("set in cart useEffect", cartItems);
+        setInCart(cartItems);
+        console.log(inCart);
         setCartData({
             total_price: cartItems.total_price?.toFixed(2) || 0.00,
             tax: cartItems.tax?.toFixed(2) || 0.00,

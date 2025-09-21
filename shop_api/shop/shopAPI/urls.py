@@ -15,9 +15,11 @@ urlpatterns = [
 
     # Cart
     path('add_item/', views.add_item, name='add-item'),
-    path('get_cart_status/<str:cart_code>', views.get_cart_status, name='get-cart-status'),
-    path('get_cart/<str:cart_code>/', views.get_cart_items, name='get-cart-items'),
+    path('cart_items/<str:cart_code>/', views.cart_items, name='cart-items'),
+    path('get_cart_status/<str:cart_code>/', views.get_cart_status, name='get-cart-status'),
     path('save_cart_code/', views.save_cart_to_user, name='save-cart-to-user'),
+    # path('get_cart/<str:cart_code>/', views.cart_items, name='get-cart-items'),
+
 
     # Admin and JWT
     path('admin/', admin.site.urls),

@@ -80,20 +80,16 @@ def signup(request):
 
 @api_view(['GET'])
 def cart_items(request, cart_code):
-    print("found in cart items: ", cart_code)
 
     if not cart_code:
         return Response({'error': 'Cart code is required'}, status=status.HTTP_400_BAD_REQUEST)
+    user_cart = Cart.objects.filter(cart_code=cart_code)
+    print(user_cart)
 
-    print("Hello, World")
-    user_items = CartItem.objects.filter(cart__cart_code=cart_code)
-    print(user_items)
-
-    if not user_items.exists():
+    if not user_cart.exists():
         return Response({'error': 'No items found in cart'}, status=status.HTTP_404_NOT_FOUND)
 
-    serializer = CartItemSerializer(user_items, many=True)
-    print(serializer.data)
+    serializer = CartSerializer(user_cart, many=True)
     return Response(serializer.data, status=status.HTTP_200_OK)
 
 
@@ -137,7 +133,6 @@ def add_item(request):
     if not cart_code or not product_id:
         return Response({'error': 'Missing cart code or product ID'}, status=status.HTTP_400_BAD_REQUEST)
 
-    print("POST method called")
     print("cart_code add Items: ", cart_code)
     print("product Id saved: ", product_id)
 

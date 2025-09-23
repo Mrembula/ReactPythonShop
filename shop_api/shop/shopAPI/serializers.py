@@ -1,3 +1,5 @@
+import decimal
+
 from rest_framework import serializers
 from .models import Product, Cart, CartItem
 
@@ -20,7 +22,6 @@ class DetailProductSerializer(serializers.ModelSerializer):
         similar = Product.objects.filter(category=obj.category).exclude(id=obj.id)[:4]
         return ProductSerializer(similar, many=True, context=self.context).data
 
-
 class CartItemSerializer(serializers.ModelSerializer):
     product = ProductSerializer(read_only=True)
     total_price = serializers.SerializerMethodField()
@@ -32,27 +33,33 @@ class CartItemSerializer(serializers.ModelSerializer):
     def get_total_price(self, obj):
         return obj.quantity * obj.product.price
 
+def get_total_price(self, obj):
+    return sum(item.quantity * item.product.price for item in obj.cart_items.all())
 
 class CartSerializer(serializers.ModelSerializer):
     cart_items = CartItemSerializer(many=True, read_only=True)
-    grand_total = serializers.SerializerMethodField()
+    total_price = serializers.SerializerMethodField()
     tax = serializers.SerializerMethodField()
-    subtotal = serializers.SerializerMethodField()
+    grand_total = serializers.SerializerMethodField()
+
+    def get_total_price(self, obj):
+        return get_total_price(self, obj)
+
+    def get_tax(self, obj):
+        # Use the subtotal from the `get_total_price` method
+        subtotal = self.get_total_price(obj)
+        return subtotal * decimal.Decimal(0.17)
+
+    def get_grand_total(self, obj):
+        # Use the subtotal and tax from the other serializer methods
+        subtotal = self.get_total_price(obj)
+        tax = self.get_tax(obj)
+        return subtotal + tax
 
     class Meta:
         model = Cart
-        fields = ['cart_code', 'user', 'cart_items', 'subtotal', 'grand_total', 'tax']
+        fields = ['cart_code', 'user', 'cart_items', 'total_price', 'grand_total', 'tax']
 
-    def get_subtotal(self, obj):
-        return sum(item.quantity * item.product.price for item in obj.cart_items.all())
-
-    def get_grand_total(self, obj):
-        subtotal = self.get_subtotal(obj)
-        return subtotal * 1.1
-
-    def get_tax(self, obj):
-        subtotal = self.get_subtotal(obj)
-        return subtotal * 0.1
 
 
 '''

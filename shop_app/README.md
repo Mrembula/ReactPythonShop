@@ -48,6 +48,6 @@ This project focuses on building a seamless e-commerce experience by implementin
 ## Setup
 1. Clone the repository:
    ```sh
-   git clone <repo-url>
+   git clone https://github.com/Mrembula/ReactPythonShop.git
    
 Had to redo my python work as it was lost. Rebuilding the python API

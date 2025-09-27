@@ -1,5 +1,4 @@
-import decimal
-
+from decimal import Decimal as d
 from rest_framework import serializers
 from .models import Product, Cart, CartItem
 
@@ -48,7 +47,7 @@ class CartSerializer(serializers.ModelSerializer):
     def get_tax(self, obj):
         # Use the subtotal from the `get_total_price` method
         subtotal = self.get_total_price(obj)
-        return subtotal * decimal.Decimal(0.17)
+        return subtotal * d(0.17)
 
     def get_grand_total(self, obj):
         # Use the subtotal and tax from the other serializer methods
@@ -59,7 +58,6 @@ class CartSerializer(serializers.ModelSerializer):
     class Meta:
         model = Cart
         fields = ['cart_code', 'user', 'cart_items', 'total_price', 'grand_total', 'tax']
-
 
 
 '''

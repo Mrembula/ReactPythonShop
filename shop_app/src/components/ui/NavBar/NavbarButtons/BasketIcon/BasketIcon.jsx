@@ -28,14 +28,13 @@ const CartBasketIcon = () => {
             return;
         }
 
+
         api.get(`cart_items/${cartCode}`)
             .then((response) => {
-                // const items = response.data || [];
                 setCartData(response.data);
                 setIsLoading(false);
                 // The new data is available here, right after the state is set.
                 console.log("Entire cart data after fetch:", response.data);
-                console.log("The cart items array: ", cartData);
             })
             .catch((err) => {
                 console.error("Error fetching cart items:", err);
@@ -43,6 +42,7 @@ const CartBasketIcon = () => {
                 setIsLoading(false);
             });
     }, [cartCode]);
+
 
     const handleCheckout = () => {
         if (!authenticate.username) {
@@ -65,7 +65,8 @@ const CartBasketIcon = () => {
         navigate("/checkout", { state: { cartItems: cartData.cart_items } });
     };
 
-    const handleRemoveClick = (cartItem) => {
+
+    const handleRemoveClick = async (cartItem) => {
         const backendId = cartItem.id;
         const productId = String(cartItem.product.id);
 
@@ -73,29 +74,31 @@ const CartBasketIcon = () => {
             console.error("Cart code or item ID is missing!");
             return;
         }
+        try {
+            const response = await api.delete(`delete_item/${cartCode}/${backendId}/`);
+            console.log("Check remove handle: ", [response.data]);
+            let userCart = [response.data];
+            setCartData(userCart);
 
-        api.delete(`delete_item/${cartCode}/${backendId}/`)
-            .then((response) => {
-                setCartData(response.data);
-                const cartStatus = JSON.parse(localStorage.getItem("inCartStatus")) || {};
-                delete cartStatus[productId];
-                localStorage.setItem("inCartStatus", JSON.stringify(cartStatus));
-
-                setInCartStatus((prevState) => ({
-                    ...prevState,
-                    [productId]: false,
-                }));
-            })
-            .catch((err) => {
-                console.error("Error removing item:", err.response?.data || err.message || "An unknown error occurred");
-            });
+            const cartStatus = JSON.parse(localStorage.getItem("inCartStatus")) || {};
+            delete cartStatus[productId];
+            localStorage.setItem("inCartStatus", JSON.stringify(cartStatus));
+            setInCartStatus((prevState) => ({
+                ...prevState,
+                [productId]: false,
+            }));
+        } catch (err) {
+            console.error("Error removing item:", err.response?.data || err.message || "An unknown error occurred")
+        }
     };
+
 
     const handleQuantityUpdate = (cartItem, newQuantity) => {
         const productId = cartItem.product.id;
-        api.put(`cart_items/${cartCode}/`, { product_id: productId, quantity: newQuantity })
+        console.log("Checking product Id: ", productId);
+        api.put(`product_quantity/${cartCode}/`, { product_id: productId, quantity: newQuantity })
             .then((response) => {
-                setCartData(response.data);
+                setCartData([response.data]);
             })
             .catch((err) => {
                 console.error("Error updating item quantity:", err);
@@ -190,9 +193,9 @@ const CartBasketIcon = () => {
                 <div className={`form-group`}>
                     <div className={`${styles.CartSummary}`}>
                         <h5>Cart Summary</h5>
-                        <p>Subtotal: <span>$ {Number(cartData[0].total_price || 0).toFixed(2)}</span></p>
-                        <p>Tax: <span>$ {Number(cartData[0].tax || 0).toFixed(2)}</span></p>
-                        <p className={`${styles.Total}`}>Total: <span>$ {Number(cartData[0].grand_total || 0).toFixed(2)}</span>
+                        <p>Subtotal: <span>$ {Number(cartData[0]?.total_price || 0).toFixed(2)}</span></p>
+                        <p>Tax: <span>$ {Number(cartData[0]?.tax || 0).toFixed(2)}</span></p>
+                        <p className={`${styles.Total}`}>Total: <span>$ {Number(cartData[0]?.grand_total || 0).toFixed(2)}</span>
                         </p>
                         <button className={`${styles.BtnCheckout}`}
                                 disabled={cartLength === 0}

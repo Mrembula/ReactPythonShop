@@ -6,15 +6,13 @@ from django.contrib.auth import authenticate
 from django.db import IntegrityError
 from django.shortcuts import get_object_or_404
 from rest_framework_simplejwt.tokens import RefreshToken
-from venv import create
-
 from api.models import CustomUser as User
 from .models import Product, Cart, CartItem
 from .serializers import ProductSerializer, CartSerializer, DetailProductSerializer, CartItemSerializer
 
 
 # I lost the first backend, Which I completed 4 months back. Tired of re-writing this
-# Use github next time to avoid this situatio
+# Use github next time to avoid this situation
 
 # Helper function for JWT tokens
 def get_tokens_for_user(user):
@@ -84,7 +82,6 @@ def cart_items(request, cart_code):
     if not cart_code:
         return Response({'error': 'Cart code is required'}, status=status.HTTP_400_BAD_REQUEST)
     user_cart = Cart.objects.filter(cart_code=cart_code)
-    print(user_cart)
 
     if not user_cart.exists():
         return Response({'error': 'No items found in cart'}, status=status.HTTP_404_NOT_FOUND)
@@ -124,6 +121,7 @@ def login(request):
     else:
         return Response({'error': 'Invalid credentials'}, status=status.HTTP_401_UNAUTHORIZED)
 
+
 # Cart-related views
 @api_view(['POST'])
 def add_item(request):
@@ -132,9 +130,6 @@ def add_item(request):
 
     if not cart_code or not product_id:
         return Response({'error': 'Missing cart code or product ID'}, status=status.HTTP_400_BAD_REQUEST)
-
-    print("cart_code add Items: ", cart_code)
-    print("product Id saved: ", product_id)
 
     if not cart_code or not product_id:
         return Response({'error': 'Missing cart code or product ID'})
@@ -151,18 +146,50 @@ def add_item(request):
     return Response({'message': 'Item added to cart'}, status=status.HTTP_201_CREATED)
 
 
-'''
-@api_view(['GET'])
-def get_cart_status(request, cart_code):
-    cart_code = request.query_params.get('cart_code')
-    if not cart_code:
-        return Response({'error': 'Cart code not provided'}, status=status.HTTP_400_BAD_REQUEST)
+@api_view(['DELETE'])
+def delete_item(request, item_id, cart_code):
+    try:
+        cart_item = CartItem.objects.get(id=item_id, cart__cart_code=cart_code)
+    except CartItem.DoesNotExist:
+        return Response({'error': 'Item not found in cart'}, status=status.HTTP_404_NOT_FOUND)
 
-    cart = get_object_or_404(Cart, cart_code=cart_code)
-    items_count = cart.cart_items.count()
+    cart_item.delete()
+    cart = cart_item.cart
 
-    return Response({'items_count': items_count}, status=status.HTTP_200_OK)
-'''
+    serializer = CartSerializer(cart)
+    return Response(serializer.data, status=status.HTTP_200_OK)
+
+
+@api_view(['PUT'])
+def product_quantity(request, cart_code):
+    try:
+        cart = Cart.objects.get(cart_code=cart_code)
+        product_id = request.data.get('product_id')
+        new_quantity = request.data.get('quantity')
+        print("Product Quantity: ", product_id, new_quantity)
+
+        if not product_id or new_quantity is None:
+            return Response({"error": "Missing product id or quantity"})
+        new_quantity = int(new_quantity)
+        if new_quantity >= 1:
+            cart_item = CartItem.objects.get(cart=cart, product__id=product_id)
+
+            print(cart_item)
+
+            cart_item.quantity = new_quantity
+            print("Quantity: ", cart_item.quantity)
+            cart_item.save()
+
+        serializer = CartSerializer(cart)
+        return Response(serializer.data, status=status.HTTP_200_OK)
+    except Cart.DoesNotExist:
+        return Response({'error': 'Item not found'}, status=status.HTTP_404_NOT_FOUND)
+    except CartItem.DoesNotExist:
+        return Response({'error': 'Product not in cart'}, status=status.HTTP_404_NOT_FOUND)
+    except ValueError:
+        return Response({'error': 'Invalid quantity'}, status=status.HTTP_400_BAD_REQUEST)
+
+
 
 
 @api_view(['GET'])

@@ -7,12 +7,9 @@ const CheckItemInCart = ({ children }) => {
 
     useEffect(() => {
         // Retrieve the cart from localStorage and sync with `inCartStatus`
-
-        // const cartStatus = JSON.parse(localStorage.getItem("inCartStatus")) || {};
-
-        // setInCartStatus(cartStatus)
-        // console.log("Synced inCartStatus:", cartStatus);
-        console.log("Hello everybody");
+        const cartStatus = JSON.parse(localStorage.getItem("inCartStatus")) || {};
+        setInCartStatus(cartStatus)
+        console.log("Synced inCartStatus:", cartStatus);
     }, []);
 
 

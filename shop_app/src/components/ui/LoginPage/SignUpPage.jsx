@@ -63,33 +63,43 @@ const SignUpPage = () => {
         }
     };
 
-
     // Form submission logic
+    /*
+    I did a hugh mistake by deleting user session when user signs up.
+    Should have applied the session to the user when he starts signing up (Mistake)
+     */
     const handleSubmit = async (event) => {
         event.preventDefault(); // Prevent default form reload
 
         if (formData.password !== formData.confirmPassword) {
             return toast.error("Password not match");
         }
+        console.log(localStorage);
 
         try {
-            const response = await api.post("/signup/", {
+
+            const response = await api.post("signup/", {
                 username: formData.fullName,
                 email: formData.email,
                 password: formData.password,
                 password_confirmation: formData.confirmPassword,
             });
+            console.log(response.data.tokens['access']);
+
             setLocalStorageData(response.data, setAuthenticate);
-            if (response.data.access_token) {
+            if (response.data.tokens['access']) {
                 navigate("/");
             }
+
         } catch (error) {
-            toast.error("Signup Error:", error);
+            if(error.response.status === 409)
+                toast("User already exists. Login");
+            else
+                toast.error("Signup Error:", error);
         }
         if (error.response && error.response.data) {
             toast.error("Signup failed. Please try again later");
         }
-
     };
 
     return (
@@ -154,8 +164,8 @@ const SignUpPage = () => {
                         </div>
 
                         <div>
-                            <button type="submit" className="w-full py-2 px-4 border rounded-md bg-yellow-500 text-white hover:bg-yellow-600"
-                            >
+                            <button type="submit"
+                                    className="w-full py-2 px-4 border rounded-md bg-yellow-500 text-white hover:bg-yellow-600">
                                 Submit
                             </button>
                         </div>

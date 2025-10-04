@@ -22,8 +22,8 @@ const NavBar = () => {
     const navigate = useNavigate();
 
     useEffect(() => {
-        console.log("Authenticate", authenticate.user);
-        if(authenticate.user !== null) {
+        console.log("Authenticate", authenticate);
+        if(authenticate !== null) {
            setUserLogin("Logout");
         }
         else {
@@ -36,7 +36,7 @@ const NavBar = () => {
     }
 
     const signUpHandle = () => {
-        if (!authenticate.username) {
+        if (!authenticate.full_name) {
             navigate('/signup');
         }
         else {

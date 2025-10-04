@@ -1,20 +1,30 @@
 import React, { useEffect, useState } from 'react';
 import 'bootstrap/dist/js/bootstrap.bundle.min.js';
 import { useNavigate } from 'react-router-dom';
-import { Link, useLocation } from 'react-router-dom';
+import { Link } from 'react-router-dom';
 import { FaUser } from "react-icons/fa";
 import api from "../../../api.js";
-import {handleLogout, setLocalStorageData, handleAddToCart, setToken} from "../../../cartUtils.js";
+import {handleLogout, setLocalStorageData, setUserData } from "../../../cartUtils.js";
+// , handleAddToCart, setToken, token, Authorization
 import { useAuth } from "../Authentication/AuthProvider.jsx";
 import {useCheckItems} from "../CounterPages/ItemInCart.jsx";
+import {toast} from "react-toastify";
+
+// --- Local Storage Helpers ---
+const getAnonymousCartCode = () => localStorage.getItem('cart_code');
+
+const setCartCode = (code) => {
+    localStorage.setItem('cart_code', code);
+};
 
 const LoginPage = () => {
     const [isPasswordVisible, setIsPasswordVisible] = useState(false);
-    const location = useLocation();
     const { authenticate, setAuthenticate } = useAuth();
     const { setInCartStatus } = useCheckItems();
 
-    // Took me 3 weeks to debug using POST(JWT re-directs back to login page as user tries to login)
+
+    // Took me 3 weeks to debug using POST(JWT re-directs back to login page as user tries to login) => This worked
+    // JWT isn't working anymore, it's removed. Can't authenticate user
     useEffect(() => {
         console.log("Login page mounted"); // Debugging log
         const token = localStorage.getItem("auth_token");
@@ -24,6 +34,7 @@ const LoginPage = () => {
             return;
         }
         // Create a new token
+        // Forgot the reason to this function. Why remove token
         api.post('/remove_token/', {},{
             headers: {
                 "Authorization": `Bearer ${localStorage.getItem('auth_token')}`,
@@ -64,34 +75,44 @@ const LoginPage = () => {
     }
 
 
-    const handleLogin = async (event) => {
-        event.preventDefault();
+    const handleLogin = async (e) => {
+        e.preventDefault();
 
-        // const response = await api.get(`/login?email=${encodeURIComponent(loginData.email)}&password=${encodeURIComponent(loginData.password)}`)
-        const response = await api.post('/api/token', {
-            username: loginData,
-            password: loginData.password,
-        })
-        const data = response.data;
-        console.log("User data response ", data);
+        // 1. Get the current anonymous cart code
+        const anonymousCartCode = getAnonymousCartCode();
 
-        data.product_in_cart.forEach(product => {
-            setInCartStatus(prevState => ({
-                ...prevState,
-                [product.id]: true
-            }));
-            handleAddToCart(product, setInCartStatus);
-        })
-        setToken(data.access_token );
+        try {
+            // 2. Send request to the custom /login/ view
+            const response = await api.post('login/', {
+                email: loginData.email,
+                password: loginData.password,
+                cart_code: anonymousCartCode || null, // Send code, or null if none exists
+            });
 
-        if (data.access_token && data.access_token !== "null") {
-            localStorage.setItem("cart_code", data.cart_code);
-            sessionStorage.setItem("auth_token", data.access_token);
-            setLocalStorageData(data.user_data, setAuthenticate);
-            authenticate.isAuth = true;
-            navigate("/");
+            // 3. Process the successful response
+            const data = response.data;
+            // Save tokens and user data
+            setUserData(data.user);
+
+            // Save the final cart code (the user's permanent cart ID)
+            if (data.cart_code) {
+                console.log("Setting new cart code:", data.cart_code);
+                setCartCode(data.cart_code);
+                localStorage.setItem("access", data.token['access']);
+                localStorage.setItem("refresh", data.token['refresh']);
+                setLocalStorageData(data, setAuthenticate)
+                authenticate.isAuth = true;
+            }
+
+            // Navigate to the homepage or profile page
+            navigate('/');
+
+        } catch (error) {
+            // Handle login errors (e.g., 401 Invalid credentials)
+            console.error('Login failed:', error.response?.data || error.message);
+            toast.error(error.response?.data?.error || 'Login failed. Please check your credentials.');
         }
-    }
+    };
 
     return (
         <div style={{ backgroundColor: 'white', opacity: 0.8, width: '100vw', minHeight: '100vh', display: 'flex' }}>
@@ -156,3 +177,49 @@ const LoginPage = () => {
 }
 
 export default LoginPage;
+
+
+/*
+
+const handleLogin = async (event) => {
+        event.preventDefault();
+        const response = await api.get(`/login?email=${encodeURIComponent(loginData.email)}&password=${encodeURIComponent(loginData.password)}`)
+
+        console.log(localStorage.getItem('cart_code'))
+
+        Code giving me issues on authenticating user.
+        Something isn't matching with my JWT
+
+
+const getToken = await api.post('token/', {
+    username: loginData.email,
+    password: loginData.password,
+})
+console.log(getToken.data);
+
+if(response.status !== 200) {
+    toast.error("Username isn't available or incorrect credentials!");
+}
+
+const data = response.data;
+console.log("User data response ", data);
+
+data.product_in_cart.forEach(product => {
+    setInCartStatus(prevState => ({
+        ...prevState,
+        [product.id]: true
+    }));
+    handleAddToCart(product, setInCartStatus);
+})
+setToken(data.access_token);
+
+if (data.access_token && data.access_token !== "null") {
+    localStorage.setItem("cart_code", data.cart_code);
+    sessionStorage.setItem("auth_token", data.access_token);
+    setLocalStorageData(data.user_data, setAuthenticate);
+    authenticate.isAuth = true;
+    navigate("/");
+}
+}
+
+ */

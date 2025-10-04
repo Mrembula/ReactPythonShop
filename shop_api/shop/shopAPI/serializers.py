@@ -1,10 +1,12 @@
 from decimal import Decimal as d
 from rest_framework import serializers
+from rest_framework_simplejwt.tokens import Token
 from .models import Product, Cart, CartItem
+from rest_framework_simplejwt.serializers import TokenObtainSerializer, AuthUser
+from django.contrib.auth import get_user_model
 
 
 class ProductSerializer(serializers.ModelSerializer):
-
     class Meta:
         model = Product
         fields = ['id', 'name', 'slug', 'image_url', 'description',
@@ -58,27 +60,3 @@ class CartSerializer(serializers.ModelSerializer):
     class Meta:
         model = Cart
         fields = ['cart_code', 'user', 'cart_items', 'total_price', 'grand_total', 'tax']
-
-
-'''
-    def get_image_url(self, obj):
-        request = self.context.get('request')
-        if obj.image_url and hasattr(obj.image_url, 'url'):
-            return request.build_absolute_uri(obj.image_url.url)
-        return None
-
-
-class DetailSerializer(serializers.ModelSerializer):
-    image = serializers.SerializerMethodField()
-    similar_products = serializers.SerializerMethodField()
-
-    class Meta:
-        model = Product
-        fields = ['id', 'name', 'slug', 'image', 'description', 'category', 'price', 'similar_products']
-
-    def get_image(self, obj):
-        request = self.context.get('request')
-        if obj.image and hasattr(obj.image, 'url'):
-            return request.build_absolute_uri(obj.image.url)
-        return None
-'''

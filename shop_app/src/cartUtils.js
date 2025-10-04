@@ -1,7 +1,6 @@
-
 import api from "./api.js";
 import { jwtDecode } from "jwt-decode";
-import { toast } from "react-toastify";
+// import { toast } from "react-toastify";
 
 
 export const isTokenExpired = (token) =>  {
@@ -14,7 +13,7 @@ export const isTokenExpired = (token) =>  {
 }
 // Usage
 const token = localStorage.getItem("auth_token");
-console.log("This is the localstorage",  localStorage);
+// console.log("This is the localstorage",  localStorage);
 if (isTokenExpired(token)) {
     console.log("Token expired. Please log in");
 }
@@ -72,13 +71,13 @@ export const handleAddToCart = (product, setInCartStatus) => {
     }
 };
 
-
 // Save user data and token
 export const setLocalStorageData = (data, setAuthenticate) => {
-    if (data.access_token) {
-        toast.success(data.message);
+    console.log("check data: ", data);
+    if (data.token.access) {
+        console.log("messages successful")
     } else {
-        toast.error(data.message);
+        console.log("messages failed")
     }
     console.log("Check data to set user", data.user);
     setAuthenticate(data.user); // setUser → Ensures React state updates immediately for real-time UI changes.
@@ -100,12 +99,16 @@ export const setToken = (accessToken) => {
     localStorage.setItem("auth_token", accessToken);
 }
 
+export const setUserData = (user) => {
+    localStorage.setItem('user', JSON.stringify(user));
+}
 
 export default {
     addItem,
     handleAddToCart,
     handleLogout,
     setLocalStorageData,
+    setUserData,
     setToken,
     isItemInCart,
     isTokenExpired,

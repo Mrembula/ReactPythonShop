@@ -34,7 +34,7 @@ const CartBasketIcon = () => {
                 setCartData(response.data);
                 setIsLoading(false);
                 // The new data is available here, right after the state is set.
-                console.log("Entire cart data after fetch:", response.data);
+               // console.log("Entire cart data after fetch:", response.data);
             })
             .catch((err) => {
                 console.error("Error fetching cart items:", err);
@@ -95,7 +95,7 @@ const CartBasketIcon = () => {
 
     const handleQuantityUpdate = (cartItem, newQuantity) => {
         const productId = cartItem.product.id;
-        console.log("Checking product Id: ", productId);
+        // console.log("Checking product Id: ", productId);
         api.put(`product_quantity/${cartCode}/`, { product_id: productId, quantity: newQuantity })
             .then((response) => {
                 setCartData([response.data]);

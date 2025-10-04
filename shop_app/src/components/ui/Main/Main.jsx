@@ -23,14 +23,11 @@ const Main = () => {
 
     // Check localStorage. Not returning any items for login
     useEffect(() => {
-        console.log("Is this working??");
         let userCartCode = localStorage.getItem("user.cart_code");
         let cartCode = localStorage.getItem("cart_code");
         const storedUser = localStorage.getItem("user");
 
         // Check for authenticated user
-        console.log("User information", storedUser);
-        console.log("User: ", localStorage.getItem("user"));
         if (storedUser && storedUser !== "null") {
             setAuthenticate(JSON.parse(storedUser));
         }
@@ -42,19 +39,15 @@ const Main = () => {
                 localStorage.setItem("cart_code", userCartCode);
             }
         }
-        console.log("End of user effect");
     }, []);
 
 
     useEffect(function(){
         setLoading(true)
-        console.log("Product Checkout 1");
         api.get("products?timestamp=" + new Date().getTime())
             .then(res => {
-                console.log(res.data);
                 setProducts(res.data)
                 setLoading(false)
-                console.log("Product Checkout 2");
                 setError("")
             }).catch(err => {
                 setLoading(false)

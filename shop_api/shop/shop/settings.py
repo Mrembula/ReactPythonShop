@@ -12,6 +12,7 @@ https://docs.djangoproject.com/en/5.2/ref/settings/
 
 from pathlib import Path
 import os
+from datetime import timedelta
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
@@ -40,6 +41,7 @@ INSTALLED_APPS = [
     'django.contrib.staticfiles',
     'corsheaders',
     'rest_framework',
+    'rest_framework_simplejwt',
     'shopAPI',
     'api',
 ]
@@ -110,6 +112,40 @@ AUTH_PASSWORD_VALIDATORS = [
         'NAME': 'django.contrib.auth.password_validation.NumericPasswordValidator',
     },
 ]
+
+SIMPLE_JWT = {
+
+    # REMOVE THIS LINE: 'TOKEN_OBTAIN_PAIR_SERIALIZER': 'rest_framework_simplejwt.serializers.TokenObtainPairSerializer',
+
+    # How long the access token is valid (e.g., 5 minutes)
+    'ACCESS_TOKEN_LIFETIME': timedelta(minutes=5),
+    # How long the refresh token is valid (e.g., 90 days)
+    'REFRESH_TOKEN_LIFETIME': timedelta(days=90),
+
+    # CRITICAL FIX: This line MUST be present and is now active:
+    'USER_ID_FIELD': 'email',
+
+    # You can keep the TokenRefreshSerializer definition:
+    'TOKEN_REFRESH_SERIALIZER': 'rest_framework_simplejwt.serializers.TokenRefreshSerializer',
+
+    # Optional: Allow sending tokens in cookies (safer, but more complex)
+    # 'ROTATE_REFRESH_TOKENS': True,
+    # 'BLACKLIST_AFTER_ROTATION': True,
+    # 'AUTH_HEADER_TYPES': ('Bearer',),
+}
+
+REST_FRAMEWORK = {
+    'DEFAULT_AUTHENTICATION_CLASSES': (
+        # Allows authenticated users to use JWT tokens
+        'rest_framework_simplejwt.authentication.JWTAuthentication',
+        # Optional: Basic session authentication for admin/testing
+        'rest_framework.authentication.SessionAuthentication',
+    ),
+    'DEFAULT_PERMISSION_CLASSES': (
+        # Default security setting
+        'rest_framework.permissions.AllowAny',
+    )
+}
 
 
 # Internationalization

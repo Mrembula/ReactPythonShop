@@ -1,26 +1,23 @@
+# from  import get_token
+from django.contrib.auth.models import AnonymousUser
 from rest_framework.decorators import api_view, permission_classes
 from rest_framework.permissions import AllowAny, IsAuthenticated
 from rest_framework.response import Response
 from rest_framework import status
-from django.contrib.auth import authenticate
+from django.contrib.auth import authenticate, login
 from django.db import IntegrityError
 from django.shortcuts import get_object_or_404
-from rest_framework_simplejwt.tokens import RefreshToken
 from api.models import CustomUser as User
 from .models import Product, Cart, CartItem
+from django.http import JsonResponse
+from django.views.decorators.csrf import csrf_exempt
 from .serializers import ProductSerializer, CartSerializer, DetailProductSerializer, CartItemSerializer
-
+from shopAPI.utils import tokens_for_user, get_auth_response_data
+from django.db.models import F
+import json
 
 # I lost the first backend, Which I completed 4 months back. Tired of re-writing this
 # Use github next time to avoid this situation
-
-# Helper function for JWT tokens
-def get_tokens_for_user(user):
-    refresh = RefreshToken.for_user(user)
-    return {
-        'refresh': str(refresh),
-        'access': str(refresh.access_token),
-    }
 
 
 # Product-related views
@@ -46,25 +43,118 @@ def related_products(request, slug):
     return Response(serializer.data)
 
 
+@api_view(['POST'])
+@permission_classes([AllowAny])
+@csrf_exempt
+def login_with_cart_merge(request):
+    """
+    Custom login view that handles authentication, JWT generation, and cart merging.
+    This replaces the problematic /token/ endpoint.
+    """
+    try:
+        data = json.loads(request.body)
+        email = data.get('email')
+        password = data.get('password')
+        cart_code = data.get('cart_code')  # Anonymous cart ID from frontend
+
+    except json.JSONDecodeError:
+        return JsonResponse({'error': 'Invalid JSON format'}, status=400)
+
+    # 1. Authenticate User
+    user = authenticate(request, username=email, password=password)
+
+    if user is not None:
+        if user.is_active:
+            final_cart_code = None
+
+            # 2. Handle Cart Merging/Linking
+            print("Cart Code: ", cart_code)
+            print("User: ", user)
+            anonymous_cart = Cart.objects.all()
+            print(anonymous_cart)
+
+            if cart_code:
+                try:
+                    anonymous_cart = Cart.objects.get(cart_code=cart_code)
+                    if not anonymous_cart:
+                        return {
+                            'message': 'User hasn\'t selected any items from our product'
+                        }
+
+
+                    #Using hasattr() to check for an existing permanent cart
+                    if hasattr(user, 'cart') and user.cart is not None:
+                        # User already has a permanent cart: Merge items
+                        user_cart = user.cart
+
+                        for item in anonymous_cart.cartitem_set.all():
+                            existing_item = user_cart.cartitem_set.filter(
+                                product=item.product
+                            ).first()
+
+                            if existing_item:
+                                existing_item.quantity = F('quantity') + item.quantity
+                                existing_item.save()
+                                item.delete()
+                            else:
+                                item.cart = user_cart
+                                item.save()
+
+                        anonymous_cart.delete()
+                        final_cart_code = user_cart.cart_code
+
+                    else:
+                        # User has no cart: Link the anonymous cart to the user
+                        anonymous_cart.user = user
+                        anonymous_cart.save()
+                        final_cart_code = anonymous_cart.cart_code
+
+                except Cart.DoesNotExist:
+                    # If the anonymous code was invalid, rely on the user's permanent cart (if it exists)
+                    pass
+
+                    # 3. Get the cart code if merging didn't happen (e.g., no anonymous code was sent)
+            if hasattr(user, 'cart') and user.cart is not None and final_cart_code is None:
+                final_cart_code = user.cart.cart_code
+
+            # 4. Generate & Return Response (Tokens, User Data, and final Cart ID)
+            response_data = get_auth_response_data(user, final_cart_code)
+
+            return JsonResponse(response_data, status=200)
+
+        else:
+            return JsonResponse({'error': 'Account is inactive.'}, status=403)
+
+    else:
+        # Authentication failed
+        return JsonResponse({'error': 'Invalid credentials.'}, status=401)
+
 # User-related views
 @api_view(['POST'])
 @permission_classes([AllowAny])
 def signup(request):
     email = request.data.get('email')
     password = request.data.get('password')
-    full_name = request.data.get('full_name', '')
+    username = request.data.get('username', '')
+    print(request.data)
+    print(email, password, username)
 
     if not email or not password:
         return Response({'error': 'Email and password are required'}, status=status.HTTP_400_BAD_REQUEST)
 
     try:
+        if User.objects.filter(email=email).exists():
+            user = authenticate(username=email, password=password)
+
         user = User.objects.create_user(
             username=email,
             email=email,
             password=password,
-            full_name=full_name
+            full_name=username
         )
-        tokens = get_tokens_for_user(user)
+
+        tokens = tokens_for_user(user)
+
         return Response({
             'message': 'User created successfully',
             'user': {'email': user.email, 'full_name': user.full_name},
@@ -74,6 +164,27 @@ def signup(request):
         return Response({'error': 'A user with this email already exists'}, status=status.HTTP_409_CONFLICT)
     except Exception as e:
         return Response({'error': str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+
+
+@api_view(['GET'])
+@permission_classes([AllowAny])
+def login(request):
+    email = request.query_params.get('email')
+    password = request.query_params.get('password')
+    print("Checking request: ", email, password)
+    user = authenticate(username=email, password=password)
+    print("User: ", user)
+
+    if user is not None:
+        tokens = tokens_for_user(user)
+        return Response({
+            'message': 'Login successful',
+            'user': {'email': user.email, 'full_name': user.full_name},
+            'tokens': tokens,
+            'password': password,
+        }, status=status.HTTP_200_OK)
+    else:
+        return Response({'error': 'Invalid credentials'}, status=status.HTTP_401_UNAUTHORIZED)
 
 
 @api_view(['GET'])
@@ -102,24 +213,6 @@ def save_cart_to_user(request):
         return Response({'success': 'Cart associated with user'}, status=status.HTTP_200_OK)
     except Cart.DoesNotExist:
         return Response({'error': 'Cart does not exist'}, status=status.HTTP_404_NOT_FOUND)
-
-
-@api_view(['POST'])
-@permission_classes([AllowAny])
-def login(request):
-    email = request.data.get('email')
-    password = request.data.get('password')
-    user = authenticate(username=email, password=password)
-
-    if user is not None:
-        tokens = get_tokens_for_user(user)
-        return Response({
-            'message': 'Login successful',
-            'user': {'email': user.email, 'full_name': user.full_name},
-            'tokens': tokens
-        }, status=status.HTTP_200_OK)
-    else:
-        return Response({'error': 'Invalid credentials'}, status=status.HTTP_401_UNAUTHORIZED)
 
 
 # Cart-related views
@@ -174,8 +267,6 @@ def product_quantity(request, cart_code):
         if new_quantity >= 1:
             cart_item = CartItem.objects.get(cart=cart, product__id=product_id)
 
-            print(cart_item)
-
             cart_item.quantity = new_quantity
             print("Quantity: ", cart_item.quantity)
             cart_item.save()
@@ -190,8 +281,6 @@ def product_quantity(request, cart_code):
         return Response({'error': 'Invalid quantity'}, status=status.HTTP_400_BAD_REQUEST)
 
 
-
-
 @api_view(['GET'])
 def get_cart_status(request, cart_code):  # <-- Add cart_code here
     if not cart_code:
@@ -202,12 +291,3 @@ def get_cart_status(request, cart_code):  # <-- Add cart_code here
     serializer = CartSerializer(cart)
 
     return Response(serializer.data, status=status.HTTP_200_OK)
-
-'''
-@api_view(['GET'])
-def cart_items(request, cart_code):
-    cart = get_object_or_404(Cart, cart_code=cart_code)
-    serializer = CartSerializer(cart)
-    print("In Cart: ", serializer.data)
-    return Response(serializer.data, status=status.HTTP_200_OK)
-'''

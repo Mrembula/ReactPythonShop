@@ -80,7 +80,6 @@ const LoginPage = () => {
 
         // 1. Get the current anonymous cart code
         const anonymousCartCode = getAnonymousCartCode();
-
         try {
             // 2. Send request to the custom /login/ view
             const response = await api.post('login/', {
@@ -103,14 +102,13 @@ const LoginPage = () => {
                 setLocalStorageData(data, setAuthenticate)
                 authenticate.isAuth = true;
             }
-
             // Navigate to the homepage or profile page
             navigate('/');
 
         } catch (error) {
             // Handle login errors (e.g., 401 Invalid credentials)
+            toast.error(error.response?.data?.error || 'Login failed. Please check your credentials.'); //Not working
             console.error('Login failed:', error.response?.data || error.message);
-            toast.error(error.response?.data?.error || 'Login failed. Please check your credentials.');
         }
     };
 

@@ -11,8 +11,8 @@ const AddCounterBasket  = ({ children }) => {
         if (cartCode) {
             api.get(`get_cart_status/${cartCode}`)
                 .then((response) => {
-                    // console.log("This is cart status", response.data);
-                    setCartItemCount(response);
+                    let itemCount = response.data?.cart_items.length;
+                    setCartItemCount(itemCount || 0);
                 })
                 .catch((err) => {
                     if (err.response && err.response.status === 404)

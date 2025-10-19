@@ -6,7 +6,7 @@ from . import views
 urlpatterns = [
     # User authentication
     path('signup/', views.signup, name='signup'),
-    path('login/', views.login_with_cart_merge, name='login'),
+    path('login/', views.login_with_cart_merge, name='custom-login'),
 
     # Products
     path('products/', views.product_list, name='product-list'),
@@ -20,7 +20,7 @@ urlpatterns = [
     path('get_cart_status/<str:cart_code>/', views.get_cart_status, name='get-cart-status'),
     path('save_cart_code/', views.save_cart_to_user, name='save-cart-to-user'),
     path('product_quantity/<str:cart_code>/', views.product_quantity, name='product-quantity'),
-    # path('get_cart/<str:cart_code>/', views.cart_items, name='get-cart-items'),
+    path('cart/status/', views.get_cart_status, name='cart-status'),
 
     # Admin and JWT
     path('admin/', admin.site.urls),

@@ -27,10 +27,25 @@ const Main = () => {
         let cartCode = localStorage.getItem("cart_code");
         const storedUser = localStorage.getItem("user");
 
+        /*
         // Check for authenticated user
         if (storedUser && storedUser !== "null") {
-            setAuthenticate(JSON.parse(storedUser));
+            // setAuthenticate(JSON.parse(storedUser));
         }
+         */
+        console.log("Stored User from localStorage:", storedUser);
+
+        if (storedUser && storedUser !== "null" && storedUser !== "undefined") {
+            try {
+                const user = JSON.parse(storedUser);
+                if (user && typeof user == 'object') {
+                    setAuthenticate(JSON.parse(storedUser));
+                }
+            } catch ( e ) {
+                console.error("Error parsing stored user data for localStorage:", e);
+            }
+        }
+
         if (!cartCode) {  // Ensure cart_code is only created when truly missing
             if (!userCartCode || userCartCode === "No cartCode found") {
                 const uniqueId = uuidv4();

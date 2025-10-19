@@ -4,6 +4,15 @@ from django.conf import settings
 from email.policy import default
 
 
+class Cart(models.Model):
+    cart_code = models.CharField(max_length=50, unique=True)
+    user = models.OneToOneField(settings.AUTH_USER_MODEL,
+                                on_delete=models.CASCADE,
+                                null=True, blank=True,
+                                related_name='cart')
+    created_at = models.DateTimeField(auto_now_add=True, null=True)
+
+
 class Product(models.Model):
     CATEGORY = (
         ("Electronics", "Electronics"),
@@ -44,14 +53,6 @@ class Product(models.Model):
                 counter += 1
         super().save(*args, **kwargs)
 
-
-class Cart(models.Model):
-    cart_code = models.CharField(max_length=50, unique=True)
-    user = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE, null=True, blank=True)
-    created_at = models.DateTimeField(auto_now_add=True)
-
-    def __str__(self):
-        return self.cart_code
 
 class CartItem(models.Model):
     cart = models.ForeignKey(Cart, on_delete=models.CASCADE, related_name='cart_items')

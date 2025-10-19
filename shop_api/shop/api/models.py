@@ -1,11 +1,13 @@
 from django.db import models
 from django.contrib.auth.models import AbstractUser
+from .backend import CustomUserManager
 
 class CustomUser(AbstractUser):
+    email = models.EmailField(unique=True)
     USERNAME_FIELD = 'email'
     REQUIRED_FIELDS = ['username']
-    email = models.EmailField(unique=True)
     full_name = models.CharField(max_length=100, blank=True, null=True)
+    objects = CustomUserManager() # Hashes user password correctly
 
     groups = models.ManyToManyField(
         'auth.Group',

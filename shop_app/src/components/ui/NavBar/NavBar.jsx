@@ -23,18 +23,18 @@ const NavBar = () => {
 
     useEffect(() => {
         console.log("Authenticate", authenticate);
-        if(authenticate !== null) {
-           setUserLogin("Logout");
+        if(authenticate.email == null) {
+           setUserLogin("Login");
         }
         else {
-            setUserLogin("Login");
+            setUserLogin("Logout");
         }
     }, [authenticate]);
 
     const navigateToStartMenu = () => {
         navigate('/');
     }
-
+    console.log("User name: ", authenticate.username, authenticate.full_name);
     const signUpHandle = () => {
         if (!authenticate.full_name) {
             navigate('/signup');

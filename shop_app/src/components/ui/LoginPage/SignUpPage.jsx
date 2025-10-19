@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import shopImage from '../images/shopping-wallpaper_3.jpg';
+import shopImage from '../Images/shopping-wallpaper_3.jpg';
 import { auth, provider, signInWithPopup } from "./firebase.js";
 import { handleLogout, setLocalStorageData } from "../../../cartUtils.js";
 import { useAuth } from "../Authentication/AuthProvider.jsx";

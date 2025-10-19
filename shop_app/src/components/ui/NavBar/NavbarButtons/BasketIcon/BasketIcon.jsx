@@ -28,41 +28,35 @@ const CartBasketIcon = () => {
             return;
         }
 
-
         api.get(`cart_items/${cartCode}`)
             .then((response) => {
                 setCartData(response.data);
                 setIsLoading(false);
+                }
                 // The new data is available here, right after the state is set.
                // console.log("Entire cart data after fetch:", response.data);
-            })
+            )
             .catch((err) => {
-                console.error("Error fetching cart items:", err);
-                setError(err.response?.data?.error || "An error occurred");
+                console.log(err);
+                // console.error("Error fetching cart items:", err);
+                // setError(err.response?.data?.error || "An error occurred");
                 setIsLoading(false);
             });
     }, [cartCode]);
 
 
     const handleCheckout = () => {
-        if (!authenticate.username) {
+        console.log(authenticate);
+        if (!authenticate.email) {
             setTimeout(() => {
                 navigate("/login");
             });
         }
-        console.log("This user data: ", authenticate);
+        /*console.log("This user data: ", authenticate);
         console.log("This is user cart code", localStorage.getItem("cart_code"))
-        api.post("save_cart_code/", {
-            "user": authenticate,
-            "cart_code": localStorage.getItem("cart_code"),
-        }, {
-            headers: {
-                "Content-Type": "application/json",
-            }
-        }).then((response) => {
-            console.log(response);
-        });
-        navigate("/checkout", { state: { cartItems: cartData.cart_items } });
+         */
+        console.log("Check cart data: ", cartData[0]);
+        navigate("/checkout", { state: { cartItems: cartData[0] } });
     };
 
 
@@ -208,3 +202,19 @@ const CartBasketIcon = () => {
 };
 
 export default CartBasketIcon;
+
+
+/*
+previous code save data
+api.post("save_cart_code/", {
+    "user": authenticate,
+    "cart_code": localStorage.getItem("cart_code"),
+}, {
+    headers: {
+        "Content-Type": "application/json",
+    }
+}).then((response) => {
+    console.log(response);
+});
+
+ */

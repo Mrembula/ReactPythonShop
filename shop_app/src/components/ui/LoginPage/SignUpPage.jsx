@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import shopImage from '../Images/shopping-wallpaper_3.jpg';
 import { auth, provider, signInWithPopup } from "./firebase.js";
-import { handleLogout, setLocalStorageData } from "../../../cartUtils.js";
+import {handleLogout, setLocalStorageData} from "../../../cartUtils.js";
 import { useAuth } from "../Authentication/AuthProvider.jsx";
 import { toast, ToastContainer } from "react-toastify";
 import { useNavigate, useLocation } from "react-router-dom";
@@ -78,16 +78,26 @@ const SignUpPage = () => {
 
         try {
 
-            const response = await api.post("signup/", {
-                username: formData.fullName,
+            if (formData.password !== formData.confirmPassword) {
+                return toast.error("Passwords do not match.");
+            }
+
+            // Ensure you are sending the correct payload keys expected by Django (username and email)
+            const payload = {
+                username: formData.fullName, // Django might use 'username' for fullName if you set it up that way
                 email: formData.email,
                 password: formData.password,
                 password_confirmation: formData.confirmPassword,
-            });
-            console.log(response.data.tokens['access']);
+            };
 
-            setLocalStorageData(response.data, setAuthenticate);
-            if (response.data.tokens['access']) {
+            const response = await api.post("signup/", payload);
+
+            console.log("Sign Up Response: ", response.data);
+            if (response.status === 201 || response.status === 200) {
+                toast.success("Registration successful! Logging you in...");
+
+                await setLocalStorageData(response.data, setAuthenticate);
+                console.log("User is all good!!")
                 navigate("/");
             }
 
@@ -194,4 +204,3 @@ const SignUpPage = () => {
 };
 
 export default SignUpPage;
-

@@ -1,3 +1,4 @@
+
 import api from "./api.js";
 import { jwtDecode } from "jwt-decode";
 // import { toast } from "react-toastify";
@@ -71,19 +72,47 @@ export const handleAddToCart = (product, setInCartStatus) => {
     }
 };
 
-// Save user data and token
 export const setLocalStorageData = (data, setAuthenticate) => {
-    console.log("check data: ", data);
-    if (data.token.access) {
-        console.log("messages successful")
-    } else {
-        console.log("messages failed")
+    if (!data || !data.tokens || !data.tokens.access) {
+        console.error("Auth Data Error: Missing token data from API response.");
+        return;
     }
-    console.log("Check data to set user", data.user);
-    setAuthenticate(data.user); // setUser → Ensures React state updates immediately for real-time UI changes.
-    console.log("Set user data: ", data.user);
-    localStorage.setItem("user", JSON.stringify(data.user)); // localStorage → Preserves data even after refresh or session expiry.
-}
+
+    const accessToken = data.tokens.access;
+    const refreshToken = data.tokens.refresh;
+    const user = data.user;
+
+    try {
+        // Store Tokens
+        localStorage.setItem("auth_token", accessToken);
+        localStorage.setItem("refresh_token", refreshToken);
+
+        if (user) {
+            const userToSave = {
+                id: user.id,
+                email: user.email,
+                username: user.username,
+            };
+            localStorage.setItem("user", JSON.stringify(userToSave));
+        }
+
+    } catch (error) {
+        console.error("!!! CRITICAL LOCAL STORAGE FAILURE: EXECUTION HALTED HERE !!!", error);
+        return;
+    }
+
+    if (user && accessToken) {
+        const decodedTokenUser = jwtDecode(accessToken);
+
+        // setAuthenticate expects the full object defined in AuthProvider.jsx: { token, user, isAuth }
+        setAuthenticate({
+            token: accessToken,
+            user: decodedTokenUser,
+            isAuth: true
+        });
+        console.log("Authentication state updated successfully. User is logged in.");
+    }
+};
 
 export const handleLogout = () => {
     // Remove user session data

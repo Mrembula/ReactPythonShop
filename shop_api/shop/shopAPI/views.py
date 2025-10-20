@@ -101,8 +101,6 @@ def signup(request):
     email = request.data.get('email')
     password = request.data.get('password')
     username = request.data.get('username', '')
-    print(request.data)
-    print(email, password, username)
 
     if not email or not password:
         return Response({'error': 'Email and password are required'}, status=status.HTTP_400_BAD_REQUEST)
@@ -110,6 +108,7 @@ def signup(request):
     try:
         if User.objects.filter(email=email).exists():
             user = authenticate(username=email, password=password)
+
 
         user = User.objects.create_user(
             username=email,
@@ -226,7 +225,7 @@ def product_quantity(request, cart_code):
 def get_cart_status(request, cart_code):  # <-- Add cart_code here
 
     try:
-        # NOTE: This view currently does not enforce user authentication
+        # NOTE: This view currently does not force user authentication
         # allowing unauthenticated users to check their cart via cart_code.
         cart = Cart.objects.get(cart_code=cart_code)
     except Cart.DoesNotExist:
@@ -234,113 +233,3 @@ def get_cart_status(request, cart_code):  # <-- Add cart_code here
 
     serializer = CartSerializer(cart)
     return Response(serializer.data, status=status.HTTP_200_OK)
-
-'''
-@api_view(['GET'])
-@permission_classes([AllowAny])
-def login(request):
-    email = request.query_params.get('email')
-    password = request.query_params.get('password')
-    print("Checking request: ", email, password)
-    user = authenticate(username=email, password=password)
-    print("User: ", user)
-
-    if user is not None:
-        tokens = tokens_for_user(user)
-        return Response({
-            'message': 'Login successful',
-            'user': {'email': user.email, 'full_name': user.full_name},
-            'tokens': tokens,
-            'password': password,
-        }, status=status.HTTP_200_OK)
-    else:
-        return Response({'error': 'Invalid credentials'}, status=status.HTTP_401_UNAUTHORIZED)
-
-'''
-
-
-'''
-@api_view(['POST'])
-@permission_classes([AllowAny])
-@csrf_exempt
-login_with_cart_merge(request):
-     try:
-        data = json.loads(request.body)
-        email = data.get('email')
-        password = data.get('password')
-        cart_code = data.get('cart_code')  # Anonymous cart ID from frontend
-
-    except json.JSONDecodeError:
-        return JsonResponse({'error': 'Invalid JSON format'}, status=400)
-
-    # 1. Authenticate User
-    user = authenticate(request, username=email, password=password)
-    print("user: ", user)
-
-    if user is not None:
-        print(user.is_active)
-        if user.is_active:
-            final_cart_code = None
-
-            # 2. Handle Cart Merging/Linking
-            print("Cart Code: ", cart_code)
-            print("User: ", user)
-            anonymous_cart = Cart.objects.all()
-            print(anonymous_cart)
-
-            if cart_code:
-                try:
-                    anonymous_cart = Cart.objects.get(cart_code=cart_code)
-                    if not anonymous_cart:
-                        return {
-                            'message': 'User hasn\'t selected any items from our product'
-                        }
-
-                    # Using hasattr() to check for an existing permanent cart
-                    if hasattr(user, 'cart') and user.cart is not None:
-                        # User already has a permanent cart: Merge items
-                        user_cart = user.cart
-
-                        for item in anonymous_cart.cartitem_set.all():
-                            existing_item = user_cart.cartitem_set.filter(
-                                product=item.product
-                            ).first()
-
-                            if existing_item:
-                                existing_item.quantity = F('quantity') + item.quantity
-                                existing_item.save()
-                                item.delete()
-                            else:
-                                item.cart = user_cart
-                                item.save()
-
-                        anonymous_cart.delete()
-                        final_cart_code = user_cart.cart_code
-
-                    else:
-                        # User has no cart: Link the anonymous cart to the user
-                        anonymous_cart.user = user
-                        anonymous_cart.save()
-                        final_cart_code = anonymous_cart.cart_code
-
-                except Cart.DoesNotExist:
-                    # If the anonymous code was invalid, rely on the user's permanent cart (if it exists)
-                    pass
-
-                    # 3. Get the cart code if merging didn't happen (e.g., no anonymous code was sent)
-            if hasattr(user, 'cart') and user.cart is not None and final_cart_code is None:
-                final_cart_code = user.cart.cart_code
-
-            # 4. Generate & Return Response (Tokens, User Data, and final Cart ID)
-            response_data = get_auth_response_data(user, final_cart_code)
-
-            return JsonResponse(response_data, status=200)
-
-        else:
-            return JsonResponse({'error': 'Account is inactive.'}, status=403)
-
-    else:
-        # Authentication failed
-        return JsonResponse({'error': 'Invalid credentials.'}, status=401)
-
-'''

@@ -23,19 +23,3 @@ const CheckItemInCart = ({ children }) => {
 const useCheckItems = () => useContext(CheckItemContext);
 
 export { CheckItemInCart, useCheckItems };
-
-/*
-    useEffect(() => {
-            const checkCartStatus = async () => {
-               console.log("LocalStorage ", JSON.parse(localStorage.getItem("cart")))
-                if(product && product.id) {
-                    const itemInCart = await cartUtils.isItemInCart(product.id)
-                    setInCartStatus((prevState) => ({
-                        ...prevState,
-                        [product.id]: itemInCart,
-                    }));
-                }
-            };
-            checkCartStatus();
-        }, [product, product?.id]);
- */

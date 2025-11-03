@@ -44,7 +44,7 @@ const UserProfileIcon = () => {
                                     <img
                                         src="https://via.placeholder.com/150"
                                         alt="Profile"
-                                        className="rounded-circle"  // Use Bootstrap's rounded-circle class
+                                        className="rounded-circle"
                                         style={{ height: '64px', width: '64px' }} //  Set fixed size
                                     />
                                     <div>

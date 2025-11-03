@@ -202,19 +202,3 @@ const CartBasketIcon = () => {
 };
 
 export default CartBasketIcon;
-
-
-/*
-previous code save data
-api.post("save_cart_code/", {
-    "user": authenticate,
-    "cart_code": localStorage.getItem("cart_code"),
-}, {
-    headers: {
-        "Content-Type": "application/json",
-    }
-}).then((response) => {
-    console.log(response);
-});
-
- */

@@ -2,12 +2,14 @@ from django.contrib import admin
 from django.urls import path
 from rest_framework_simplejwt.views import TokenObtainPairView, TokenRefreshView
 from . import views
+from .views import google_login_view
 
 urlpatterns = [
     # User authentication
     path('signup/', views.signup, name='signup'),
     path('login/', views.login_with_cart_merge, name='custom-login'),
-
+    path('auth/google/', google_login_view, name='google_login'),
+    
     # Products
     path('products/', views.product_list, name='product-list'),
     path('product/<slug:slug>/', views.product_detail, name='product-detail'),

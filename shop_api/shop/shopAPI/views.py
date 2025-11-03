@@ -1,17 +1,27 @@
-from rest_framework.decorators import api_view, permission_classes
+from rest_framework.decorators import api_view, permission_classes, authentication_classes
 from rest_framework.permissions import AllowAny, IsAuthenticated
 from rest_framework.response import Response
 from rest_framework import status
+from rest_framework.views import APIView
 from django.contrib.auth import authenticate, login
-from django.db import IntegrityError
+from django.db import IntegrityError, transaction
 from django.shortcuts import get_object_or_404
 from .models import Product, Cart, CartItem
 from django.contrib.auth import get_user_model
 from .serializers import CustomTokenObtainPairSerializer
 from .serializers import ProductSerializer, CartSerializer, DetailProductSerializer
 from rest_framework_simplejwt.tokens import RefreshToken
-from django.db.models import F
-import json
+
+
+try:
+    import firebase_admin
+    from firebase_admin import auth, credentials
+    from firebase_admin import exceptions as firebase_exceptions
+    from firebase_admin import auth as firebase_auth
+    from .firebase_admin_utils import verify_firebase_token
+    FIRE_ADMIN_ENABLED = True
+except ImportError:
+    FIRE_ADMIN_ENABLED = False
 
 # I lost the first backend, Which I completed 4 months back. Tired of re-writing this
 # Use github next time to avoid this situation
@@ -92,6 +102,71 @@ def login_with_cart_merge(request):
     # If valid, serializer.validated_data contains the access/refresh tokens,
     # user data, and the cart_code.
     return Response(serializer.validated_data, status=status.HTTP_200_OK)
+
+
+@api_view(['POST'])
+@permission_classes([AllowAny])
+def google_login_view(request):
+    
+    token = request.data.get('id_token')
+    anonymous_cart_code = request.data.get('cart_code')
+
+    if not token:
+        return Response({"detail": "ID token missing."}, status=status.HTTP_400_BAD_REQUEST)
+    try:
+        decoded_token = verify_firebase_token(token)
+        # print(decoded_token) Decoded token check if it works  
+
+        email = decoded_token.get('email')
+        name = decoded_token.get('name')
+       
+        if not email:
+            return Response({"detail": "Firebase token is missing an email address."},
+                            status=status.HTTP_400_BAD_REQUEST)
+
+        # 3. GET OR CREATE DJANGO USER
+        user, created = User.objects.get_or_create(
+            email=email,
+            defaults={
+                'username': email,
+                'first_name': name.split(' ')[0] if name else '',
+                'last_name': ' '.join(name.split(' ')[1:]) if name and len(name.split(' ')) > 1 else '',
+                'is_social_auth': True,
+            }
+        )
+
+        if created:
+            user.set_unusable_password()
+            user.save()
+
+        # 4. TOKEN GENERATION
+        tokens = tokens_for_user(user)
+
+        # NOTE: Cart merging logic should be implemented here or in a dedicated utility.
+        # For now, we assume a cart code can be derived from the user model.
+        final_cart_code = getattr(user, 'cart_code', 'DEFAULT_CART_CODE')
+
+        # 5. CONSTRUCT FINAL RESPONSE
+        response_data = {
+            "tokens": tokens,
+            "user": {
+                "id": user.id,
+                "email": user.email,
+                "username": user.username,
+                "first_name": user.first_name,
+            },
+            "cart_code": final_cart_code,
+            "message": "Social login successful."
+        }
+        return Response(response_data, status=status.HTTP_200_OK)
+
+    except firebase_auth.InvalidIdTokenError:
+        return Response({"detail": "Invalid or expired Firebase ID token. Please sign in again."},
+                        status=status.HTTP_401_UNAUTHORIZED)
+    except Exception as e:
+        print(f"Unexpected Social Auth Error: {e}")
+        return Response({"detail": "An unexpected server error occurred during authentication."},
+                        status=status.HTTP_500_INTERNAL_SERVER_ERROR)
 
 
 # User-related view

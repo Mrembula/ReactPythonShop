@@ -1,11 +1,12 @@
 import React, { useState, useEffect } from 'react';
 import shopImage from '../Images/shopping-wallpaper_3.jpg';
-import { auth, provider, signInWithPopup } from "./firebase.js";
+// import { auth, provider, signInWithPopup } from "./firebase.js";
 import {handleLogout, setLocalStorageData} from "../../../cartUtils.js";
 import { useAuth } from "../Authentication/AuthProvider.jsx";
 import { toast, ToastContainer } from "react-toastify";
 import { useNavigate, useLocation } from "react-router-dom";
 import { FaUser, FaGoogle } from 'react-icons/fa';
+import {handleGoogleSignIn} from "./firebase.js";
 import api from "../../../api.js";
 import { Link } from "react-router-dom";
 import error from "../Error/Error.jsx";
@@ -40,23 +41,18 @@ const SignUpPage = () => {
 
     // Google authentication logic
     const GoogleAuth = async () => {
+        const anonymousCartCode = localStorage.getItem('cartCode');
+
         try {
-            const result = await signInWithPopup(auth, provider);
-            const idToken = await result.user.getIdToken();
+            // CRITICAL: Call the imported function which handles the pop-up and API call
+            const apiResponseData = await handleGoogleSignIn(api, anonymousCartCode);
 
-            console.log("Token Before Sending:", idToken);
+            toast.success("Google sign-in successful! Logging you in...");
 
-            const response = await api.post("/api/auth",  {}, {
-                headers: {
-                    "Authorization": `Bearer ${idToken}`,
-                    "Content-Type": "application/json",
-                },
-            });
-            const data = await response.data;
-            setLocalStorageData(data, setAuthenticate);
-             if (data.access_token) {
-                 navigate("/");
-             }
+            // Use the cartUtils function to handle token/user saving (Firestore + Context)
+            await setLocalStorageData(apiResponseData, setAuthenticate);
+
+            navigate("/");
 
         } catch (error) {
             console.error("Login Error:", error);
@@ -97,7 +93,6 @@ const SignUpPage = () => {
                 toast.success("Registration successful! Logging you in...");
 
                 await setLocalStorageData(response.data, setAuthenticate);
-                console.log("User is all good!!")
                 navigate("/");
             }
 

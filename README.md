@@ -2,7 +2,10 @@
 
 README: E-Commerce API (CS50x Final Project)
 Video Demo: https://youtu.be/rQsK8H7JwKM
+
+
 Description
+
 This project is a robust, full-featured E-Commerce Backend API built using Django and Django REST Framework (DRF). It serves as a comprehensive server-side solution for a digital storefront, featuring custom email-based authentication, JWT security, and external API integration for product data.
 
 Unlike standard Django setups, this project implements a Custom User Model that prioritizes email addresses over usernames to align with modern web standards. It also integrates Firebase Admin SDK for cross-platform token verification and includes automated data fetching from the Fake Store API.

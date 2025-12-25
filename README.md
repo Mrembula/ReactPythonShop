@@ -41,8 +41,8 @@ shop_data.py: A management script to populate the database via the Fake Store AP
 
 A modern e-commerce platform built with React and Python, featuring dynamic cart management, real-time calculations, and integrations for payments. Currently refining the checkout process to ensure secure transactions. This project is my first full-stack build with these technologies, marking a key learning experience
 
-#Clone the repository
+**Clone the repository**
 git clone: https://github.com/Mrembula/ReactPythonShop.git
 
-#Install dependencies:
+**Install dependencies**
 pip install django djangorestframework djangorestframework-simplejwt django-cors-headers firebase-admin requests

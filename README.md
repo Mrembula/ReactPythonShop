@@ -46,3 +46,14 @@ git clone: https://github.com/Mrembula/ReactPythonShop.git
 
 **Install dependencies**
 pip install django djangorestframework djangorestframework-simplejwt django-cors-headers firebase-admin requests
+
+## Testing
+To ensure the reliability of the API, I implemented a suite of tests using Django's `TestCase` and `APITestCase`. 
+
+I ran the following command to verify the backend logic:
+`python manage.py test shopAPI`
+
+The tests verify:
+- **Product Availability**: Ensures the `/products/` endpoint returns a 200 OK status.
+- **Slug Generation**: Confirms that products automatically generate URL-friendly slugs from their names.
+- **Cart Logic**: Verifies that the system correctly handles requests for non-existent carts.
